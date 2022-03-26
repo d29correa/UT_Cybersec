@@ -1,0 +1,33 @@
+#INSTALLING Filebeat on WEBSERVERS
+#YAML Playbook
+#Author: David Correa
+#Ver: 1.0
+---
+- name: Install Filebeat
+  hosts: webservers
+  become: yes
+  tasks:
+    - name: Download .deb file
+      command: curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-7.4.0-amd64.deb
+
+    - name: Install filebeat debian
+      command: dpkg -i filebeat-7.4.0-amd64.deb
+
+    - name: Drop YML file
+      copy:
+       src: /etc/ansible/files/filebeat-config.yml
+       dest: /etc/filebeat/filebeat.yml
+
+    - name: Enable System Module
+      command: filebeat modules enable system
+
+    - name: Setup filebeat
+      command: filebeat setup
+
+    - name: Start filebeat
+      command: service filebeat start
+
+    - name: Enable Service on boot
+      systemd:
+       name: filebeat
+       enabled: yes

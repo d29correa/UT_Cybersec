@@ -1,0 +1,54 @@
+#INSTALLING ELK AS A DOCKER CONTAINER
+#YAML Playbook
+#Author: David Correa
+#Ver: 1.0
+---
+#Configuring 256MB to be used as container
+- name: Config ELK
+  hosts: elk
+  remote_user: sysadmin
+  become: true
+  tasks:
+    - name: More memory
+      sysctl:
+        name: vm.max_map_count
+        value: '262144'
+        state: present
+        reload: yes
+
+#Download docker.io
+    - name: docker.io
+      apt:
+        update_cache: yes
+        name: docker.io
+        state: present
+
+#Download and install pip3
+    - name: Install pip3
+      apt: 
+        force_apt_get: yes
+        name: python3-pip
+        state: present
+
+#Install Docker module
+    - name: Install Docker python module
+      pip:
+        name: docker
+        state: present
+
+#Download and launch ELK v7.6.1 as a container and publish ports 5601,9200,5044
+    - name: download and launch a docker elk container
+      docker_container:
+        name: elk
+        image: sebp/elk:761
+        state: started
+        published_ports: 
+          - 5601:5601
+          - 9200:9200
+          - 5044:5044
+
+#Enable the docker service
+    - name: Enable docker service
+      systemd:
+        name: docker
+        enabled: yes
